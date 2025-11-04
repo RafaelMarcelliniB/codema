@@ -6,11 +6,12 @@ class HomeView extends StatefulWidget {
   _HomeViewState createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
+class _HomeViewState extends State<HomeView>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  
+
   bool _showConsulta = false;
   final _dniController = TextEditingController();
   bool _isLoading = false;
@@ -23,16 +24,17 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       duration: Duration(milliseconds: 1200),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-    
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+
     _slideAnimation = Tween<Offset>(
       begin: Offset(0, 0.3),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    
+
     _controller.forward();
   }
 
@@ -76,7 +78,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       _resultadoConsulta = resultado;
     });
 
-    if (resultado == null || resultado['data'] == null || resultado['data'].isEmpty) {
+    if (resultado == null ||
+        resultado['data'] == null ||
+        resultado['data'].isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('No se encontraron resultados para este DNI'),
@@ -107,10 +111,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Color(0xFF0a9e9d),
-                          width: 3,
-                        ),
+                        border: Border.all(color: Color(0xFF0a9e9d), width: 3),
                         boxShadow: [
                           BoxShadow(
                             color: Color(0xFF0a9e9d).withOpacity(0.2),
@@ -126,9 +127,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(height: 30),
-                  
+
                   // Título UDH
                   FadeTransition(
                     opacity: _fadeAnimation,
@@ -171,9 +172,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       ],
                     ),
                   ),
-                  
+
                   SizedBox(height: 50),
-                  
+
                   // Tarjeta principal
                   SlideTransition(
                     position: _slideAnimation,
@@ -199,7 +200,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                         child: Column(
                           children: [
                             Text(
-                              'Trámite de Títulos',
+                              'Grados y Títulos',
                               style: TextStyle(
                                 color: Color(0xFF2f2e2e),
                                 fontSize: 24,
@@ -207,15 +208,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                               ),
                             ),
                             SizedBox(height: 12),
-                            Text(
-                              'Maestrías y Doctorados',
-                              style: TextStyle(
-                                color: Color(0xFF7e7767),
-                                fontSize: 16,
-                              ),
-                            ),
-                            SizedBox(height: 30),
-                            
+
                             // Botón CONSULTAS
                             Material(
                               color: Colors.transparent,
@@ -233,23 +226,35 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                 child: Ink(
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Color(0xFF0a9e9d), Color(0xFF04787c)],
+                                      colors: [
+                                        Color(0xFF0a9e9d),
+                                        Color(0xFF04787c),
+                                      ],
                                     ),
                                     borderRadius: BorderRadius.circular(14),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Color(0xFF0a9e9d).withOpacity(0.3),
+                                        color: Color(
+                                          0xFF0a9e9d,
+                                        ).withOpacity(0.3),
                                         blurRadius: 15,
                                         offset: Offset(0, 6),
                                       ),
                                     ],
                                   ),
                                   child: Container(
-                                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 40),
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 16,
+                                      horizontal: 40,
+                                    ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.search, color: Colors.white, size: 24),
+                                        Icon(
+                                          Icons.search,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
                                         SizedBox(width: 12),
                                         Text(
                                           'CONSULTAS',
@@ -262,7 +267,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                         ),
                                         SizedBox(width: 8),
                                         Icon(
-                                          _showConsulta ? Icons.expand_less : Icons.expand_more,
+                                          _showConsulta
+                                              ? Icons.expand_less
+                                              : Icons.expand_more,
                                           color: Colors.white,
                                           size: 24,
                                         ),
@@ -272,7 +279,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                 ),
                               ),
                             ),
-                            
+
                             // Sección desplegable
                             AnimatedSize(
                               duration: Duration(milliseconds: 300),
@@ -285,11 +292,14 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                         color: Color(0xFFF5F5F5),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: Color(0xFF0a9e9d).withOpacity(0.2),
+                                          color: Color(
+                                            0xFF0a9e9d,
+                                          ).withOpacity(0.2),
                                         ),
                                       ),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
                                         children: [
                                           Text(
                                             'Consultar Trámite por DNI',
@@ -304,37 +314,65 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                             controller: _dniController,
                                             keyboardType: TextInputType.number,
                                             maxLength: 8,
-                                            style: TextStyle(color: Color(0xFF2f2e2e)),
+                                            style: TextStyle(
+                                              color: Color(0xFF2f2e2e),
+                                            ),
                                             decoration: InputDecoration(
                                               labelText: 'Número de DNI',
-                                              labelStyle: TextStyle(color: Color(0xFF7e7767)),
+                                              labelStyle: TextStyle(
+                                                color: Color(0xFF7e7767),
+                                              ),
                                               hintText: 'Ej: 12345678',
-                                              prefixIcon: Icon(Icons.badge, color: Color(0xFF0a9e9d)),
+                                              prefixIcon: Icon(
+                                                Icons.badge,
+                                                color: Color(0xFF0a9e9d),
+                                              ),
                                               filled: true,
                                               fillColor: Colors.white,
                                               counterText: '',
                                               border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(10),
-                                                borderSide: BorderSide(color: Color(0xFF0a9e9d).withOpacity(0.3)),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                borderSide: BorderSide(
+                                                  color: Color(
+                                                    0xFF0a9e9d,
+                                                  ).withOpacity(0.3),
+                                                ),
                                               ),
                                               enabledBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(10),
-                                                borderSide: BorderSide(color: Color(0xFF0a9e9d).withOpacity(0.3)),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                borderSide: BorderSide(
+                                                  color: Color(
+                                                    0xFF0a9e9d,
+                                                  ).withOpacity(0.3),
+                                                ),
                                               ),
                                               focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(10),
-                                                borderSide: BorderSide(color: Color(0xFF0a9e9d), width: 2),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                borderSide: BorderSide(
+                                                  color: Color(0xFF0a9e9d),
+                                                  width: 2,
+                                                ),
                                               ),
                                             ),
                                           ),
                                           SizedBox(height: 16),
                                           ElevatedButton(
-                                            onPressed: _isLoading ? null : _consultarTramite,
+                                            onPressed: _isLoading
+                                                ? null
+                                                : _consultarTramite,
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: Color(0xFF0a9e9d),
-                                              padding: EdgeInsets.symmetric(vertical: 14),
+                                              backgroundColor: Color(
+                                                0xFF0a9e9d,
+                                              ),
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: 14,
+                                              ),
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(10),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
                                               ),
                                               elevation: 0,
                                             ),
@@ -344,20 +382,30 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                                     width: 20,
                                                     child: CircularProgressIndicator(
                                                       strokeWidth: 2,
-                                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                            Color
+                                                          >(Colors.white),
                                                     ),
                                                   )
                                                 : Row(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
                                                     children: [
-                                                      Icon(Icons.search, color: Colors.white, size: 20),
+                                                      Icon(
+                                                        Icons.search,
+                                                        color: Colors.white,
+                                                        size: 20,
+                                                      ),
                                                       SizedBox(width: 8),
                                                       Text(
                                                         'BUSCAR',
                                                         style: TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 16,
-                                                          fontWeight: FontWeight.bold,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                           letterSpacing: 1.2,
                                                         ),
                                                       ),
@@ -365,43 +413,82 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                                   ),
                                           ),
                                           if (_resultadoConsulta != null &&
-                                              _resultadoConsulta!['data'] != null &&
-                                              _resultadoConsulta!['data'].isNotEmpty) ...[
+                                              _resultadoConsulta!['data'] !=
+                                                  null &&
+                                              _resultadoConsulta!['data']
+                                                  .isNotEmpty) ...[
                                             SizedBox(height: 20),
                                             Container(
                                               padding: EdgeInsets.all(16),
                                               decoration: BoxDecoration(
                                                 color: Colors.white,
-                                                borderRadius: BorderRadius.circular(10),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
                                                 border: Border.all(
-                                                  color: Color(0xFF0a9e9d).withOpacity(0.3),
+                                                  color: Color(
+                                                    0xFF0a9e9d,
+                                                  ).withOpacity(0.3),
                                                 ),
                                               ),
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Row(
                                                     children: [
-                                                      Icon(Icons.check_circle, color: Color(0xFF0a9e9d), size: 24),
+                                                      Icon(
+                                                        Icons.check_circle,
+                                                        color: Color(
+                                                          0xFF0a9e9d,
+                                                        ),
+                                                        size: 24,
+                                                      ),
                                                       SizedBox(width: 8),
                                                       Text(
                                                         'Estudiante Encontrado',
                                                         style: TextStyle(
-                                                          color: Color(0xFF0a9e9d),
+                                                          color: Color(
+                                                            0xFF0a9e9d,
+                                                          ),
                                                           fontSize: 16,
-                                                          fontWeight: FontWeight.bold,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                   SizedBox(height: 12),
-                                                  Divider(color: Color(0xFF0a9e9d).withOpacity(0.2)),
+                                                  Divider(
+                                                    color: Color(
+                                                      0xFF0a9e9d,
+                                                    ).withOpacity(0.2),
+                                                  ),
                                                   SizedBox(height: 12),
-                                                  _buildResultRow('Código:', _resultadoConsulta!['data'][0]['codigo'] ?? 'N/A'),
-                                                  _buildResultRow('Nombres:', _resultadoConsulta!['data'][0]['nombre'] ?? 'N/A'),
-                                                  _buildResultRow('Primer Apellido:', _resultadoConsulta!['data'][0]['pri_ape'] ?? 'N/A'),
-                                                  _buildResultRow('Segundo Apellido:', _resultadoConsulta!['data'][0]['seg_ape'] ?? 'N/A'),
-                                                  _buildResultRow('DNI:', _resultadoConsulta!['data'][0]['docu_num'] ?? 'N/A'),
+                                                  _buildResultRow(
+                                                    'Código:',
+                                                    _resultadoConsulta!['data'][0]['codigo'] ??
+                                                        'N/A',
+                                                  ),
+                                                  _buildResultRow(
+                                                    'Nombres:',
+                                                    _resultadoConsulta!['data'][0]['nombre'] ??
+                                                        'N/A',
+                                                  ),
+                                                  _buildResultRow(
+                                                    'Primer Apellido:',
+                                                    _resultadoConsulta!['data'][0]['pri_ape'] ??
+                                                        'N/A',
+                                                  ),
+                                                  _buildResultRow(
+                                                    'Segundo Apellido:',
+                                                    _resultadoConsulta!['data'][0]['seg_ape'] ??
+                                                        'N/A',
+                                                  ),
+                                                  _buildResultRow(
+                                                    'DNI:',
+                                                    _resultadoConsulta!['data'][0]['docu_num'] ??
+                                                        'N/A',
+                                                  ),
                                                 ],
                                               ),
                                             ),
@@ -416,9 +503,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(height: 40),
-                  
+
                   // Footer
                   FadeTransition(
                     opacity: _fadeAnimation,
@@ -486,10 +573,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                color: Color(0xFF2f2e2e),
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Color(0xFF2f2e2e), fontSize: 14),
             ),
           ),
         ],
