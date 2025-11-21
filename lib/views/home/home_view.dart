@@ -6,8 +6,7 @@ class HomeView extends StatefulWidget {
   _HomeViewState createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView>
-    with SingleTickerProviderStateMixin {
+class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -78,9 +77,7 @@ class _HomeViewState extends State<HomeView>
       _resultadoConsulta = resultado;
     });
 
-    if (resultado == null ||
-        resultado['data'] == null ||
-        resultado['data'].isEmpty) {
+    if (resultado == null || resultado['data'] == null || resultado['data'].isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('No se encontraron resultados para este DNI'),
@@ -92,6 +89,23 @@ class _HomeViewState extends State<HomeView>
 
   @override
   Widget build(BuildContext context) {
+    final dataRow = (_resultadoConsulta != null &&
+            _resultadoConsulta!['data'] != null &&
+            _resultadoConsulta!['data'].isNotEmpty)
+        ? _resultadoConsulta!['data'][0]
+        : null;
+
+    final bool hasObservaciones = dataRow != null &&
+        (
+          (dataRow['observacion_matricula'] != null && dataRow['observacion_matricula'].toString().isNotEmpty) ||
+          (dataRow['observacion_tesoreria'] != null && dataRow['observacion_tesoreria'].toString().isNotEmpty) ||
+          (dataRow['observacion_idiomas'] != null && dataRow['observacion_idiomas'].toString().isNotEmpty) ||
+          (dataRow['observacion_repositorio'] != null && dataRow['observacion_repositorio'].toString().isNotEmpty) ||
+          (dataRow['observacion_prog_acad'] != null && dataRow['observacion_prog_acad'].toString().isNotEmpty) ||
+          (dataRow['observacion_facultad'] != null && dataRow['observacion_facultad'].toString().isNotEmpty) ||
+          (dataRow['observacion_fotografia'] != null && dataRow['observacion_fotografia'].toString().isNotEmpty)
+        );
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -267,9 +281,7 @@ class _HomeViewState extends State<HomeView>
                                         ),
                                         SizedBox(width: 8),
                                         Icon(
-                                          _showConsulta
-                                              ? Icons.expand_less
-                                              : Icons.expand_more,
+                                          _showConsulta ? Icons.expand_less : Icons.expand_more,
                                           color: Colors.white,
                                           size: 24,
                                         ),
@@ -298,8 +310,7 @@ class _HomeViewState extends State<HomeView>
                                         ),
                                       ),
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
                                         children: [
                                           Text(
                                             'Consultar Trámite por DNI',
@@ -310,6 +321,9 @@ class _HomeViewState extends State<HomeView>
                                             ),
                                           ),
                                           SizedBox(height: 16),
+
+
+                                          // Campo DNI
                                           TextField(
                                             controller: _dniController,
                                             keyboardType: TextInputType.number,
@@ -331,26 +345,19 @@ class _HomeViewState extends State<HomeView>
                                               fillColor: Colors.white,
                                               counterText: '',
                                               border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
+                                                borderRadius: BorderRadius.circular(10),
                                                 borderSide: BorderSide(
-                                                  color: Color(
-                                                    0xFF0a9e9d,
-                                                  ).withOpacity(0.3),
+                                                  color: Color(0xFF0a9e9d).withOpacity(0.3),
                                                 ),
                                               ),
                                               enabledBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
+                                                borderRadius: BorderRadius.circular(10),
                                                 borderSide: BorderSide(
-                                                  color: Color(
-                                                    0xFF0a9e9d,
-                                                  ).withOpacity(0.3),
+                                                  color: Color(0xFF0a9e9d).withOpacity(0.3),
                                                 ),
                                               ),
                                               focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
+                                                borderRadius: BorderRadius.circular(10),
                                                 borderSide: BorderSide(
                                                   color: Color(0xFF0a9e9d),
                                                   width: 2,
@@ -360,19 +367,12 @@ class _HomeViewState extends State<HomeView>
                                           ),
                                           SizedBox(height: 16),
                                           ElevatedButton(
-                                            onPressed: _isLoading
-                                                ? null
-                                                : _consultarTramite,
+                                            onPressed: _isLoading ? null : _consultarTramite,
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: Color(
-                                                0xFF0a9e9d,
-                                              ),
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: 14,
-                                              ),
+                                              backgroundColor: Color(0xFF0a9e9d),
+                                              padding: EdgeInsets.symmetric(vertical: 14),
                                               shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
+                                                borderRadius: BorderRadius.circular(10),
                                               ),
                                               elevation: 0,
                                             ),
@@ -382,16 +382,11 @@ class _HomeViewState extends State<HomeView>
                                                     width: 20,
                                                     child: CircularProgressIndicator(
                                                       strokeWidth: 2,
-                                                      valueColor:
-                                                          AlwaysStoppedAnimation<
-                                                            Color
-                                                          >(Colors.white),
+                                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                                     ),
                                                   )
                                                 : Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
                                                     children: [
                                                       Icon(
                                                         Icons.search,
@@ -404,90 +399,170 @@ class _HomeViewState extends State<HomeView>
                                                         style: TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                                          fontWeight: FontWeight.bold,
                                                           letterSpacing: 1.2,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                           ),
-                                          if (_resultadoConsulta != null &&
-                                              _resultadoConsulta!['data'] !=
-                                                  null &&
-                                              _resultadoConsulta!['data']
-                                                  .isNotEmpty) ...[
+                                          if (dataRow != null) ...[
                                             SizedBox(height: 20),
                                             Container(
                                               padding: EdgeInsets.all(16),
                                               decoration: BoxDecoration(
                                                 color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
+                                                borderRadius: BorderRadius.circular(10),
                                                 border: Border.all(
-                                                  color: Color(
-                                                    0xFF0a9e9d,
-                                                  ).withOpacity(0.3),
+                                                  color: Color(0xFF0a9e9d).withOpacity(0.3),
                                                 ),
                                               ),
                                               child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                   Row(
                                                     children: [
                                                       Icon(
                                                         Icons.check_circle,
-                                                        color: Color(
-                                                          0xFF0a9e9d,
-                                                        ),
+                                                        color: Color(0xFF0a9e9d),
                                                         size: 24,
                                                       ),
                                                       SizedBox(width: 8),
                                                       Text(
                                                         'Estudiante Encontrado',
                                                         style: TextStyle(
-                                                          color: Color(
-                                                            0xFF0a9e9d,
-                                                          ),
+                                                          color: Color(0xFF0a9e9d),
                                                           fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                                          fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                   SizedBox(height: 12),
                                                   Divider(
-                                                    color: Color(
-                                                      0xFF0a9e9d,
-                                                    ).withOpacity(0.2),
+                                                    color: Color(0xFF0a9e9d).withOpacity(0.2),
                                                   ),
                                                   SizedBox(height: 12),
-                                                  _buildResultRow(
-                                                    'Código:',
-                                                    _resultadoConsulta!['data'][0]['codigo'] ??
-                                                        'N/A',
-                                                  ),
-                                                  _buildResultRow(
-                                                    'Nombres:',
-                                                    _resultadoConsulta!['data'][0]['nombre'] ??
-                                                        'N/A',
-                                                  ),
-                                                  _buildResultRow(
-                                                    'Primer Apellido:',
-                                                    _resultadoConsulta!['data'][0]['pri_ape'] ??
-                                                        'N/A',
-                                                  ),
-                                                  _buildResultRow(
-                                                    'Segundo Apellido:',
-                                                    _resultadoConsulta!['data'][0]['seg_ape'] ??
-                                                        'N/A',
-                                                  ),
-                                                  _buildResultRow(
-                                                    'DNI:',
-                                                    _resultadoConsulta!['data'][0]['docu_num'] ??
-                                                        'N/A',
+                                                  _buildResultRow('Código:', dataRow['codigo']?.toString() ?? 'N/A'),
+                                                  _buildResultRow('Nombres:', dataRow['nombre']?.toString() ?? 'N/A'),
+                                                  _buildResultRow('Primer Apellido:', dataRow['pri_ape']?.toString() ?? 'N/A'),
+                                                  _buildResultRow('Segundo Apellido:', dataRow['seg_ape']?.toString() ?? 'N/A'),
+                                                  _buildResultRow('DNI:', dataRow['docu_num']?.toString() ?? 'N/A'),
+                                                  SizedBox(height: 12),
+                                                  Container(
+                                                    width: double.infinity,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                      children: [
+                                                        Container(
+                                                          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                                          decoration: BoxDecoration(
+                                                            color: Color(0xFF0a9e9d),
+                                                            borderRadius: BorderRadius.circular(6),
+                                                          ),
+                                                          child: Text(
+                                                            dataRow['den_grad']?.toString() ?? '',
+                                                            textAlign: TextAlign.center,
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 14,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 10),
+                                                        Text(
+                                                          '${dataRow['nombre'] ?? ''} ${dataRow['pri_ape'] ?? ''} ${dataRow['seg_ape'] ?? ''}',
+                                                          textAlign: TextAlign.center,
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                            color: Color(0xFF2f2e2e),
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 12),
+
+                                                        _buildStatusRow(
+                                                          'Oficina de Matrícula',
+                                                          dataRow['es_matricula'],
+                                                          observacion: dataRow['observacion_matricula'],
+                                                        ),
+                                                        if (dataRow['observacion_matricula'] != null && dataRow['observacion_matricula'].toString().isNotEmpty) ...[
+                                                          SizedBox(height: 8),
+                                                          _buildObservationBox(dataRow['observacion_matricula'].toString()),
+                                                        ],
+
+                                                        _buildStatusRow(
+                                                          'Oficina de Tesorería',
+                                                          dataRow['es_tesoreria'],
+                                                          observacion: dataRow['observacion_tesoreria'],
+                                                        ),
+                                                        if (dataRow['observacion_tesoreria'] != null && dataRow['observacion_tesoreria'].toString().isNotEmpty) ...[
+                                                          SizedBox(height: 8),
+                                                          _buildObservationBox(dataRow['observacion_tesoreria'].toString()),
+                                                        ],
+
+                                                        _buildStatusRow(
+                                                          'Centro de Idiomas',
+                                                          dataRow['es_idiomas'],
+                                                          observacion: dataRow['observacion_idiomas'],
+                                                        ),
+                                                        if (dataRow['observacion_idiomas'] != null && dataRow['observacion_idiomas'].toString().isNotEmpty) ...[
+                                                          SizedBox(height: 8),
+                                                          _buildObservationBox(dataRow['observacion_idiomas'].toString()),
+                                                        ],
+
+                                                        _buildStatusRow(
+                                                          'Repositorio Institucional',
+                                                          dataRow['es_repositorio'],
+                                                          observacion: dataRow['observacion_repositorio'],
+                                                        ),
+                                                        if (dataRow['observacion_repositorio'] != null && dataRow['observacion_repositorio'].toString().isNotEmpty) ...[
+                                                          SizedBox(height: 8),
+                                                          _buildObservationBox(dataRow['observacion_repositorio'].toString()),
+                                                        ],
+
+                                                        _buildStatusRow(
+                                                          'Programa Académico',
+                                                          dataRow['es_prog_acad'],
+                                                          observacion: dataRow['observacion_prog_acad'],
+                                                        ),
+                                                        if (dataRow['observacion_prog_acad'] != null && dataRow['observacion_prog_acad'].toString().isNotEmpty) ...[
+                                                          SizedBox(height: 8),
+                                                          _buildObservationBox(dataRow['observacion_prog_acad'].toString()),
+                                                        ],
+
+                                                        _buildStatusRow(
+                                                          'Facultad',
+                                                          dataRow['es_facultad'],
+                                                          observacion: dataRow['observacion_facultad'],
+                                                        ),
+                                                        if (dataRow['observacion_facultad'] != null && dataRow['observacion_facultad'].toString().isNotEmpty) ...[
+                                                          SizedBox(height: 8),
+                                                          _buildObservationBox(dataRow['observacion_facultad'].toString()),
+                                                        ],
+
+                                                        _buildStatusRow(
+                                                          'Fotografía',
+                                                          dataRow['es_fotografia'],
+                                                          observacion: dataRow['observacion_fotografia'],
+                                                        ),
+                                                        if (dataRow['observacion_fotografia'] != null && dataRow['observacion_fotografia'].toString().isNotEmpty) ...[
+                                                          SizedBox(height: 8),
+                                                          _buildObservationBox(dataRow['observacion_fotografia'].toString()),
+                                                        ],
+
+                                                        _buildStatusRow(
+                                                          'Estado',
+                                                          dataRow['es_completado'],
+                                                          observacion: null,
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -574,6 +649,95 @@ class _HomeViewState extends State<HomeView>
             child: Text(
               value,
               style: TextStyle(color: Color(0xFF2f2e2e), fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusRow(String label, dynamic value, {dynamic observacion}) {
+    List<Widget> badges = [];
+
+    final String val = value == null ? '0' : value.toString();
+
+    if (val == '1') {
+      badges.add(_statusBadge('Verificado', Colors.green));
+    } else {
+      badges.add(_statusBadge('Pendiente', Colors.amber));
+    }
+
+    if (observacion != null && observacion.toString().isNotEmpty) {
+      final obsStr = observacion.toString();
+      if (obsStr.toLowerCase().contains('habilitado')) {
+        badges.add(SizedBox(width: 6));
+        badges.add(_statusBadge('Habilitado', Colors.green));
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label + ':',
+              style: TextStyle(
+                color: Color(0xFF7e7767),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: badges,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statusBadge(String text, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildObservationBox(String text) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Color(0xFFfff3cd), // light warning background
+        border: Border.all(color: Color(0xFFf0c36d)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Color(0xFFb36b00), size: 20),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Color(0xFF6b4a00),
+                fontSize: 13,
+              ),
             ),
           ),
         ],
