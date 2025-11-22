@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // agregado: para inputFormatters (solo números)
 import '../../services/api_service.dart';
 
 class HomeView extends StatefulWidget {
@@ -45,7 +46,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
   }
 
   Future<void> _consultarTramite() async {
-    if (_dniController.text.isEmpty) {
+    final dni = _dniController.text.trim();
+
+    if (dni.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Por favor ingrese un DNI'),
@@ -55,10 +58,11 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       return;
     }
 
-    if (_dniController.text.length != 8) {
+    // pequeño fix: validar que sean exactamente 8 dígitos numéricos
+    if (!RegExp(r'^\d{8}$').hasMatch(dni)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('El DNI debe tener 8 dígitos'),
+          content: Text('El DNI debe tener 8 dígitos numéricos'),
           backgroundColor: Colors.orange.shade400,
         ),
       );
@@ -70,50 +74,71 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       _resultadoConsulta = null;
     });
 
-    final resultado = await ApiService.consultarTramite(_dniController.text);
-
-    setState(() {
-      _isLoading = false;
-      _resultadoConsulta = resultado;
-    });
-
-    if (resultado == null || resultado['data'] == null || resultado['data'].isEmpty) {
+    try {
+      final resultado = await ApiService.consultarTramite(dni);
+      // pequeño fix: proteger si la API devuelve algo inesperado (no Map)
+      if (resultado is! Map<String, dynamic> && resultado != null) {
+        // si no es un map, intentamos envolverlo para evitar crashes
+        setState(() {
+          _resultadoConsulta = {'data': resultado};
+        });
+      } else {
+        setState(() {
+          _resultadoConsulta = resultado as Map<String, dynamic>?;
+        });
+      }
+    } catch (e) {
+      // pequeño fix: manejar errores de red/excepciones y avisar al usuario
+      setState(() {
+        _resultadoConsulta = null;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se encontraron resultados para este DNI'),
-          backgroundColor: Colors.orange.shade400,
+          content: Text('Error al consultar. Revisa tu conexión.'),
+          backgroundColor: Colors.red.shade400,
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+
+    // Nota: el chequeo de "sin resultados" queda abajo en el build a partir de _resultadoConsulta
   }
 
   @override
   Widget build(BuildContext context) {
-    final dataRow = (_resultadoConsulta != null &&
+    // pequeño fix: validar que 'data' sea una lista antes de convertirla
+    final List<dynamic> dataList = (_resultadoConsulta != null &&
             _resultadoConsulta!['data'] != null &&
-            _resultadoConsulta!['data'].isNotEmpty)
-        ? _resultadoConsulta!['data'][0]
-        : null;
+            _resultadoConsulta!['data'] is List &&
+            (_resultadoConsulta!['data'] as List).isNotEmpty)
+        ? List<dynamic>.from(_resultadoConsulta!['data'] as List)
+        : [];
 
-    final bool hasObservaciones = dataRow != null &&
-        (
-          (dataRow['observacion_matricula'] != null && dataRow['observacion_matricula'].toString().isNotEmpty) ||
-          (dataRow['observacion_tesoreria'] != null && dataRow['observacion_tesoreria'].toString().isNotEmpty) ||
-          (dataRow['observacion_idiomas'] != null && dataRow['observacion_idiomas'].toString().isNotEmpty) ||
-          (dataRow['observacion_repositorio'] != null && dataRow['observacion_repositorio'].toString().isNotEmpty) ||
-          (dataRow['observacion_prog_acad'] != null && dataRow['observacion_prog_acad'].toString().isNotEmpty) ||
-          (dataRow['observacion_facultad'] != null && dataRow['observacion_facultad'].toString().isNotEmpty) ||
-          (dataRow['observacion_fotografia'] != null && dataRow['observacion_fotografia'].toString().isNotEmpty)
-        );
+    final bool hasObservaciones = dataList.isNotEmpty && dataList.any((dataRow) {
+      return (
+        (dataRow['observacion_matricula'] != null && dataRow['observacion_matricula'].toString().isNotEmpty) ||
+        (dataRow['observacion_tesoreria'] != null && dataRow['observacion_tesoreria'].toString().isNotEmpty) ||
+        (dataRow['observacion_idiomas'] != null && dataRow['observacion_idiomas'].toString().isNotEmpty) ||
+        (dataRow['observacion_repositorio'] != null && dataRow['observacion_repositorio'].toString().isNotEmpty) ||
+        (dataRow['observacion_prog_acad'] != null && dataRow['observacion_prog_acad'].toString().isNotEmpty) ||
+        (dataRow['observacion_facultad'] != null && dataRow['observacion_facultad'].toString().isNotEmpty) ||
+        (dataRow['observacion_fotografia'] != null && dataRow['observacion_fotografia'].toString().isNotEmpty)
+      );
+    });
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Stack(
+          fit: StackFit.expand,
           children: [
             // Contenido principal
             SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+              // dejar espacio abajo para el footer fijo
+              padding: EdgeInsets.fromLTRB(24, 30, 24, 140),
               child: Column(
                 children: [
                   // Logo animado
@@ -327,6 +352,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                           TextField(
                                             controller: _dniController,
                                             keyboardType: TextInputType.number,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter.digitsOnly, // agregado: solo permite dígitos
+                                            ],
                                             maxLength: 8,
                                             style: TextStyle(
                                               color: Color(0xFF2f2e2e),
@@ -406,167 +434,128 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                                     ],
                                                   ),
                                           ),
-                                          if (dataRow != null) ...[
-                                            SizedBox(height: 20),
-                                            Container(
-                                              padding: EdgeInsets.all(16),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(10),
-                                                border: Border.all(
-                                                  color: Color(0xFF0a9e9d).withOpacity(0.3),
-                                                ),
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
+                                          if (dataList.isNotEmpty) ...[
+                                            // Render a section per degree/title returned by the API
+                                            ...dataList.map<Widget>((dataRow) => Column(
+                                              children: [
+                                                SizedBox(height: 20),
+                                                Container(
+                                                  width: double.infinity,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.stretch,
                                                     children: [
-                                                      Icon(
-                                                        Icons.check_circle,
-                                                        color: Color(0xFF0a9e9d),
-                                                        size: 24,
-                                                      ),
-                                                      SizedBox(width: 8),
-                                                      Text(
-                                                        'Estudiante Encontrado',
-                                                        style: TextStyle(
+                                                      Container(
+                                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                                        decoration: BoxDecoration(
                                                           color: Color(0xFF0a9e9d),
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold,
+                                                          borderRadius: BorderRadius.circular(6),
                                                         ),
+                                                        child: Text(
+                                                          dataRow['den_grad']?.toString() ?? '',
+                                                          textAlign: TextAlign.center,
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 10),
+                                                      Text(
+                                                        '${dataRow['nombre'] ?? ''} ${dataRow['pri_ape'] ?? ''} ${dataRow['seg_ape'] ?? ''}',
+                                                        textAlign: TextAlign.center,
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: Color(0xFF2f2e2e),
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 12),
+
+                                                      _buildStatusRow(
+                                                        'Oficina de Matrícula',
+                                                        dataRow['es_matricula'],
+                                                        observacion: dataRow['observacion_matricula'],
+                                                      ),
+                                                      if (dataRow['observacion_matricula'] != null && dataRow['observacion_matricula'].toString().isNotEmpty) ...[
+                                                        SizedBox(height: 8),
+                                                        _buildObservationBox(dataRow['observacion_matricula'].toString()),
+                                                      ],
+
+                                                      _buildStatusRow(
+                                                        'Oficina de Tesorería',
+                                                        dataRow['es_tesoreria'],
+                                                        observacion: dataRow['observacion_tesoreria'],
+                                                      ),
+                                                      if (dataRow['observacion_tesoreria'] != null && dataRow['observacion_tesoreria'].toString().isNotEmpty) ...[
+                                                        SizedBox(height: 8),
+                                                        _buildObservationBox(dataRow['observacion_tesoreria'].toString()),
+                                                      ],
+
+                                                      _buildStatusRow(
+                                                        'Centro de Idiomas',
+                                                        dataRow['es_idiomas'],
+                                                        observacion: dataRow['observacion_idiomas'],
+                                                      ),
+                                                      if (dataRow['observacion_idiomas'] != null && dataRow['observacion_idiomas'].toString().isNotEmpty) ...[
+                                                        SizedBox(height: 8),
+                                                        _buildObservationBox(dataRow['observacion_idiomas'].toString()),
+                                                      ],
+
+                                                      _buildStatusRow(
+                                                        'Repositorio Institucional',
+                                                        dataRow['es_repositorio'],
+                                                        observacion: dataRow['observacion_repositorio'],
+                                                      ),
+                                                      if (dataRow['observacion_repositorio'] != null && dataRow['observacion_repositorio'].toString().isNotEmpty) ...[
+                                                        SizedBox(height: 8),
+                                                        _buildObservationBox(dataRow['observacion_repositorio'].toString()),
+                                                      ],
+
+                                                      _buildStatusRow(
+                                                        'Programa Académico',
+                                                        dataRow['es_prog_acad'],
+                                                        observacion: dataRow['observacion_prog_acad'],
+                                                      ),
+                                                      if (dataRow['observacion_prog_acad'] != null && dataRow['observacion_prog_acad'].toString().isNotEmpty) ...[
+                                                        SizedBox(height: 8),
+                                                        _buildObservationBox(dataRow['observacion_prog_acad'].toString()),
+                                                      ],
+
+                                                      _buildStatusRow(
+                                                        'Facultad',
+                                                        dataRow['es_facultad'],
+                                                        observacion: dataRow['observacion_facultad'],
+                                                      ),
+                                                      if (dataRow['observacion_facultad'] != null && dataRow['observacion_facultad'].toString().isNotEmpty) ...[
+                                                        SizedBox(height: 8),
+                                                        _buildObservationBox(dataRow['observacion_facultad'].toString()),
+                                                      ],
+
+                                                      _buildStatusRow(
+                                                        'Fotografía',
+                                                        dataRow['es_fotografia'],
+                                                        observacion: dataRow['observacion_fotografia'],
+                                                      ),
+                                                      if (dataRow['observacion_fotografia'] != null && dataRow['observacion_fotografia'].toString().isNotEmpty) ...[
+                                                        SizedBox(height: 8),
+                                                        _buildObservationBox(dataRow['observacion_fotografia'].toString()),
+                                                      ],
+
+                                                      _buildStatusRow(
+                                                        'Estado',
+                                                        dataRow['es_completado'],
+                                                        observacion: null,
                                                       ),
                                                     ],
                                                   ),
-                                                  SizedBox(height: 12),
-                                                  Divider(
-                                                    color: Color(0xFF0a9e9d).withOpacity(0.2),
-                                                  ),
-                                                  SizedBox(height: 12),
-                                                  _buildResultRow('Código:', dataRow['codigo']?.toString() ?? 'N/A'),
-                                                  _buildResultRow('Nombres:', dataRow['nombre']?.toString() ?? 'N/A'),
-                                                  _buildResultRow('Primer Apellido:', dataRow['pri_ape']?.toString() ?? 'N/A'),
-                                                  _buildResultRow('Segundo Apellido:', dataRow['seg_ape']?.toString() ?? 'N/A'),
-                                                  _buildResultRow('DNI:', dataRow['docu_num']?.toString() ?? 'N/A'),
-                                                  SizedBox(height: 12),
-                                                  Container(
-                                                    width: double.infinity,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius: BorderRadius.circular(8),
-                                                    ),
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                                          decoration: BoxDecoration(
-                                                            color: Color(0xFF0a9e9d),
-                                                            borderRadius: BorderRadius.circular(6),
-                                                          ),
-                                                          child: Text(
-                                                            dataRow['den_grad']?.toString() ?? '',
-                                                            textAlign: TextAlign.center,
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 14,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        SizedBox(height: 10),
-                                                        Text(
-                                                          '${dataRow['nombre'] ?? ''} ${dataRow['pri_ape'] ?? ''} ${dataRow['seg_ape'] ?? ''}',
-                                                          textAlign: TextAlign.center,
-                                                          style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16,
-                                                            color: Color(0xFF2f2e2e),
-                                                          ),
-                                                        ),
-                                                        SizedBox(height: 12),
-
-                                                        _buildStatusRow(
-                                                          'Oficina de Matrícula',
-                                                          dataRow['es_matricula'],
-                                                          observacion: dataRow['observacion_matricula'],
-                                                        ),
-                                                        if (dataRow['observacion_matricula'] != null && dataRow['observacion_matricula'].toString().isNotEmpty) ...[
-                                                          SizedBox(height: 8),
-                                                          _buildObservationBox(dataRow['observacion_matricula'].toString()),
-                                                        ],
-
-                                                        _buildStatusRow(
-                                                          'Oficina de Tesorería',
-                                                          dataRow['es_tesoreria'],
-                                                          observacion: dataRow['observacion_tesoreria'],
-                                                        ),
-                                                        if (dataRow['observacion_tesoreria'] != null && dataRow['observacion_tesoreria'].toString().isNotEmpty) ...[
-                                                          SizedBox(height: 8),
-                                                          _buildObservationBox(dataRow['observacion_tesoreria'].toString()),
-                                                        ],
-
-                                                        _buildStatusRow(
-                                                          'Centro de Idiomas',
-                                                          dataRow['es_idiomas'],
-                                                          observacion: dataRow['observacion_idiomas'],
-                                                        ),
-                                                        if (dataRow['observacion_idiomas'] != null && dataRow['observacion_idiomas'].toString().isNotEmpty) ...[
-                                                          SizedBox(height: 8),
-                                                          _buildObservationBox(dataRow['observacion_idiomas'].toString()),
-                                                        ],
-
-                                                        _buildStatusRow(
-                                                          'Repositorio Institucional',
-                                                          dataRow['es_repositorio'],
-                                                          observacion: dataRow['observacion_repositorio'],
-                                                        ),
-                                                        if (dataRow['observacion_repositorio'] != null && dataRow['observacion_repositorio'].toString().isNotEmpty) ...[
-                                                          SizedBox(height: 8),
-                                                          _buildObservationBox(dataRow['observacion_repositorio'].toString()),
-                                                        ],
-
-                                                        _buildStatusRow(
-                                                          'Programa Académico',
-                                                          dataRow['es_prog_acad'],
-                                                          observacion: dataRow['observacion_prog_acad'],
-                                                        ),
-                                                        if (dataRow['observacion_prog_acad'] != null && dataRow['observacion_prog_acad'].toString().isNotEmpty) ...[
-                                                          SizedBox(height: 8),
-                                                          _buildObservationBox(dataRow['observacion_prog_acad'].toString()),
-                                                        ],
-
-                                                        _buildStatusRow(
-                                                          'Facultad',
-                                                          dataRow['es_facultad'],
-                                                          observacion: dataRow['observacion_facultad'],
-                                                        ),
-                                                        if (dataRow['observacion_facultad'] != null && dataRow['observacion_facultad'].toString().isNotEmpty) ...[
-                                                          SizedBox(height: 8),
-                                                          _buildObservationBox(dataRow['observacion_facultad'].toString()),
-                                                        ],
-
-                                                        _buildStatusRow(
-                                                          'Fotografía',
-                                                          dataRow['es_fotografia'],
-                                                          observacion: dataRow['observacion_fotografia'],
-                                                        ),
-                                                        if (dataRow['observacion_fotografia'] != null && dataRow['observacion_fotografia'].toString().isNotEmpty) ...[
-                                                          SizedBox(height: 8),
-                                                          _buildObservationBox(dataRow['observacion_fotografia'].toString()),
-                                                        ],
-
-                                                        _buildStatusRow(
-                                                          'Estado',
-                                                          dataRow['es_completado'],
-                                                          observacion: null,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                                ),
+                                              ],
+                                            )).toList(),
                                           ],
                                         ],
                                       ),
@@ -580,18 +569,6 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                   ),
 
                   SizedBox(height: 40),
-
-                  // Footer
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Text(
-                      '© 2025 UDH - Todos los derechos reservados',
-                      style: TextStyle(
-                        color: Color(0xFF7e7767).withOpacity(0.6),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -620,6 +597,25 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       SizedBox(width: 6),
                       Icon(Icons.logout, color: Color(0xFF0a9e9d), size: 20),
                     ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Footer fijo en la parte inferior
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 12,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Center(
+                  child: Text(
+                    '© 2025 UDH - Todos los derechos reservados',
+                    style: TextStyle(
+                      color: Color(0xFF7e7767).withOpacity(0.6),
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),
