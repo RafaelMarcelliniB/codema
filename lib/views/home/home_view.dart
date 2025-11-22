@@ -58,7 +58,6 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       return;
     }
 
-    // pequeño fix: validar que sean exactamente 8 dígitos numéricos
     if (!RegExp(r'^\d{8}$').hasMatch(dni)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -76,9 +75,8 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
 
     try {
       final resultado = await ApiService.consultarTramite(dni);
-      // pequeño fix: proteger si la API devuelve algo inesperado (no Map)
+
       if (resultado is! Map<String, dynamic> && resultado != null) {
-        // si no es un map, intentamos envolverlo para evitar crashes
         setState(() {
           _resultadoConsulta = {'data': resultado};
         });
@@ -88,7 +86,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
         });
       }
     } catch (e) {
-      // pequeño fix: manejar errores de red/excepciones y avisar al usuario
+
       setState(() {
         _resultadoConsulta = null;
       });
@@ -104,12 +102,12 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       });
     }
 
-    // Nota: el chequeo de "sin resultados" queda abajo en el build a partir de _resultadoConsulta
+
   }
 
   @override
   Widget build(BuildContext context) {
-    // pequeño fix: validar que 'data' sea una lista antes de convertirla
+
     final List<dynamic> dataList = (_resultadoConsulta != null &&
             _resultadoConsulta!['data'] != null &&
             _resultadoConsulta!['data'] is List &&
@@ -135,9 +133,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Contenido principal
+
             SingleChildScrollView(
-              // dejar espacio abajo para el footer fijo
+
               padding: EdgeInsets.fromLTRB(24, 30, 24, 140),
               child: Column(
                 children: [
@@ -353,7 +351,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                             controller: _dniController,
                                             keyboardType: TextInputType.number,
                                             inputFormatters: [
-                                              FilteringTextInputFormatter.digitsOnly, // agregado: solo permite dígitos
+                                              FilteringTextInputFormatter.digitsOnly, 
                                             ],
                                             maxLength: 8,
                                             style: TextStyle(
@@ -435,7 +433,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                                   ),
                                           ),
                                           if (dataList.isNotEmpty) ...[
-                                            // Render a section per degree/title returned by the API
+                                    
                                             ...dataList.map<Widget>((dataRow) => Column(
                                               children: [
                                                 SizedBox(height: 20),
@@ -602,7 +600,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
               ),
             ),
 
-            // Footer fijo en la parte inferior
+            // Footer 
             Positioned(
               left: 0,
               right: 0,
