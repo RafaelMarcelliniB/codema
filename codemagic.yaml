@@ -1,0 +1,21 @@
+workflows:
+  ios_simulator:
+    name: iOS Simulator Build
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: |
+          flutter pub get
+      - name: Build iOS Simulator
+        script: |
+          flutter build ios --simulator --flavor ios-production -t lib/main_prod.dart
+    artifacts:
+      - build/ios/iphonesimulator/Runner.app
+    publishing:
+      email:
+        recipients:
+          - 2022110523@udh.edu.pe
